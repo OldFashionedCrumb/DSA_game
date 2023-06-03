@@ -406,3 +406,20 @@ public class Board extends JPanel implements ActionListener {
 
 
     }
+
+
+    @Override
+    public void paintComponent(Graphics g) {
+
+        int uncover = 0;
+
+        for (int i = 0; i < N_ROWS; i++) {
+            for (int j = 0; j < N_COLS; j++) {
+
+                Cell cell = gameBoard[i][j];
+                String imageName = cell.getImageName();
+
+                //game over when user clicks on mine
+                if (inGame && cell.getCellType() == CellType.Bomb && !cell.isCoveredCell()) {
+                    inGame = false;
+                }
