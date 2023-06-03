@@ -41,3 +41,17 @@ public class Board extends JPanel implements ActionListener {
     protected static Cell[][] gameBoard;
     //total number of cells
     private int allCells;
+    //Fields related to images used in our game to represent cells and bombs
+    private final int NUM_IMAGES = 13;
+    //Using map as collection to store images and their names, which can make it more easily retrievable
+    private java.util.Map<String, Image> images;
+
+    //Fields related to game status
+    private boolean inGame;
+    private static JLabel statusbar;
+    private static JButton bUndo;
+    private static JButton bRule;
+    private static JTextArea textArea;
+    private static String STATUS_FILE = "Status.txt";
+
+    private Stack gameSteps = new Stack();
