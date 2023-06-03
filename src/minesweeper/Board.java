@@ -210,3 +210,111 @@ public class Board extends JPanel implements ActionListener {
                 + "To start a new game, just clicks anywhere on the board. You can stop the game at any point by exiting the game. The game will automatically be saved." +
                 " When re-loaded, the user will have the option of starting a new game or starting from the most recent version of the game when exited.. "+"\n");
     }
+
+    //Initializes the game board
+    private void initBoard() throws IOException {
+
+        setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
+        images = new java.util.HashMap<>();
+
+
+        //Put all relevant images in the map, some images named with integers, others named with descriptors
+        for (int i = 1; i < 9; i++) {
+            String path = "src/resources/" + i + ".png";
+            images.put(Integer.toString(i), (new ImageIcon(path)).getImage());
+        }
+
+        images.put("Bomb", (new ImageIcon("src/resources/Bomb.png")).getImage());
+        images.put("Covered", (new ImageIcon("src/resources/Covered.png")).getImage());
+        images.put("Empty", (new ImageIcon("src/resources/Empty.png")).getImage());
+        images.put("Marked", (new ImageIcon("src/resources/Marked.png")).getImage());
+        images.put("Wrongmarked", (new ImageIcon("src/resources/Wrongmarked.png")).getImage());
+
+        addMouseListener(new MinesAdapter());
+
+        showRules();
+
+        //Load Game if user saves game status
+
+        File statusFile = new File(STATUS_FILE);
+        if (statusFile.exists()) {
+
+            String[] options = { "yes, please!", "no, thanks!" };
+            int result = JOptionPane.showOptionDialog(null, "Do you want to restore the previous status?", "",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+
+            if (result == 1) {
+                newGame();
+            } else {
+                loadStatusFromFile();
+                repaint();
+            }
+
+        } else {
+            newGame();
+        }
+    }
+
+    //Loads game status from file
+    private void loadStatusFromFile() throws IOException {
+        try {
+            //2D Array of cells in gameboard
+            gameBoard = new Cell[N_ROWS][N_COLS];
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(STATUS_FILE))) {
+                inGame = true;
+                minesLeft = N_MINES;
+                // Parse user name
+                String line = reader.readLine();
+                if (line != null) {
+                    if (line.startsWith(OBJECT_SPLITTER) && line.endsWith(OBJECT_SPLITTER) && line.contains("User Name")) {
+                        line = reader.readLine();
+                        if (line != null) {
+                            textArea.setText(line);
+                        }
+                    }
+                }
+                // Parse cells of 2D Array
+                //Extracts properties of 2D array cells previously written in
+                line = reader.readLine();
+                if (line != null) {
+                    if (line.startsWith(OBJECT_SPLITTER) && line.endsWith(OBJECT_SPLITTER) && line.contains("Cells")) {
+                        line = reader.readLine();
+                        int i = 0;
+                        while (line != null) {
+                            String[] lineValue = line.split(CELL_SPLITTER);
+                            if (lineValue.length == 4) {
+                                if (null != lineValue[0]) switch (lineValue[0]) {
+                                    case "Empty":
+                                        gameBoard[i / N_COLS][i % N_ROWS] = new EmptyCell(lineValue[1], lineValue[2]);
+
+                                        break;
+                                    case "Bomb":
+                                        gameBoard[i / N_COLS][i % N_ROWS] = new BombCell(lineValue[1], lineValue[2]);
+
+                                        break;
+                                    case "BombNeighbor":
+                                        gameBoard[i / N_COLS][i % N_ROWS] = new NeighborOfBombCell(lineValue[1], lineValue[2],
+                                                Integer.valueOf(lineValue[3]));
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            if (gameBoard[i / N_COLS][i % N_ROWS].isMarkedCell()) {
+                                this.minesLeft--;
+                            }
+                            line = reader.readLine();
+                            i++;
+                        }
+                    }
+                }
+
+                String msg = Integer.toString(minesLeft);
+                this.statusbar.setText("Flags Left: " + msg);
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
