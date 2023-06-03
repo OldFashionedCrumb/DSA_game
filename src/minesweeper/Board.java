@@ -318,3 +318,91 @@ public class Board extends JPanel implements ActionListener {
             e.printStackTrace();
         }
     }
+
+    //Sets up value of game board for the first time
+    private void newGame() {
+
+
+        inGame = true;
+        minesLeft = N_MINES;
+
+        allCells = N_ROWS * N_COLS;
+
+        //2D Array of cells in gameboard
+        gameBoard = new Cell[N_ROWS][N_COLS];
+
+        for (int x = 0; x < N_ROWS; x++) {//initially have everything be empty
+            for(int y=0; y < N_COLS; y++) {
+                gameBoard[x][y] = new EmptyCell();
+            }
+        }
+
+        statusbar.setText("Flags Left: " + Integer.toString(minesLeft));
+
+        int i = 0;
+
+        //set up the grid
+        while (i < N_MINES) {
+            Random random = new Random();
+            int positionX = (int) (random.nextInt(15 - 0 + 1) + 0);
+            int positionY = (int) (random.nextInt(15 - 0 + 1) + 0);
+
+            //randomly place the bomb cell
+            if(gameBoard[positionX][positionY].getCellType() != CellType.Bomb) {
+                gameBoard[positionX][positionY] = new BombCell();
+
+
+                //sets up neighbor cells
+                for(int dx = -1; dx <= 1; dx++) {
+                    for(int dy = -1; dy <= 1; dy++) {
+                        if((dx != 0 || dy != 0) && positionX + dx < N_COLS && positionY + dy < N_ROWS
+                                && positionX + dx >= 0 && positionY + dy >=0) {
+                            CellType typeOfCell = gameBoard[positionX + dx][positionY + dy].getCellType();
+                            if(typeOfCell != CellType.Bomb) {//not already a neighbor cell
+                                if (typeOfCell != CellType.BombNeighbor) {
+                                    NeighborOfBombCell neighbor = new NeighborOfBombCell();
+                                    neighbor.cellCount();
+                                    gameBoard[positionX + dx][positionY + dy] = neighbor;
+                                }
+                                else {//already a neighbor cell, just need to update the neighbor count
+
+                                    gameBoard[positionX + dx][positionY + dy].cellCount();
+                                }
+                            }
+
+                        }
+                    }
+                }
+                i++;
+
+            }
+
+        }
+    }
+
+    //checks this for all neighbors
+    public void find_empty_cells(int x, int y) {
+
+        //int current_col = j % N_COLS;
+        gameBoard[x][y].flipUp();
+        gameSteps.push(x * N_COLS + y);//add steps to gameSteps Stack
+        for(int dx = -1; dx <= 1; dx++) {
+            for(int dy = -1; dy <= 1; dy++) {//set bounds
+                if((dx != 0 || dy != 0) && x + dx < N_COLS && y + dy < N_ROWS
+                        && x + dx >= 0 && y + dy >= 0) {
+
+                    CellType typeOfCell = gameBoard[x + dx][y + dy].getCellType();
+                    //if(typeOfCell == CellType.BombNeighbor && gameBoard[x + dx][y + dy].isCoveredCell()) {
+                    //    gameBoard[x + dx][y + dy].flipUp();
+                    //}
+                    //else
+                    if(typeOfCell == CellType.Empty && gameBoard[x + dx][y + dy].isCoveredCell()) {
+                        find_empty_cells(x + dx, y + dy);
+                    }
+                }
+            }
+        }
+
+
+
+    }
