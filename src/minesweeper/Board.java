@@ -55,3 +55,103 @@ public class Board extends JPanel implements ActionListener {
     private static String STATUS_FILE = "Status.txt";
 
     private Stack gameSteps = new Stack();
+    //Constructor
+    public Board(JLabel statusbar, JButton bUndo, JButton bRule, JTextArea textArea) throws IOException {
+
+        this.statusbar = statusbar;
+        this.bUndo = bUndo;
+        this.bUndo.addActionListener(this);
+        this.bRule = bRule;
+        this.bRule.addActionListener(this);
+        this.textArea = textArea;
+
+        initBoard();
+    }
+
+
+    //Action performed when user wants to undo moves or see the rules
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            if (e.getActionCommand().equals("Rules")) {
+                showRules();
+            }
+            else if (e.getActionCommand().equals("Undo")) {
+                this.undo();
+            }
+        }
+        catch (Exception oe) {
+            oe.printStackTrace();
+        }
+    }
+
+
+    //Allows user to undo moves
+    private void undo() {
+        if (!gameSteps.empty()) {
+            int i = (Integer)gameSteps.pop();//gets most recent game step
+            //corresponding cell to the game step
+            Cell cell = gameBoard[i / N_COLS][i % N_ROWS];
+
+            //Handle flagged cells situation, which are covered
+            if (cell.isCoveredCell()) {
+                cell.changeWhetherMarked();
+                if (cell.isMarkedCell()) {
+                    minesLeft--;
+                } else {
+                    minesLeft++;
+                    if (!inGame) {
+                        inGame = true;
+                    }
+                }
+            }
+
+            else if (cell.getCellType() == CellType.Bomb) {
+                cell.isCovered = true;
+                inGame = true;
+
+            }
+
+            else if (cell.getCellType() == CellType.BombNeighbor) {
+                cell.isCovered = true;
+            }
+
+            String msg = Integer.toString(minesLeft);
+            this.statusbar.setText("Flags Left: " + msg);
+
+            //Takes care of empty cell situation
+            if (cell.getCellType() == CellType.Empty) {
+                cell.isCovered = true;
+                while (!gameSteps.empty()) {
+                    int j = (Integer)gameSteps.pop();
+                    Cell cellNext = gameBoard[j / N_COLS][j % N_ROWS];
+                    if (cellNext.getCellType().equals(CellType.BombNeighbor)) {
+                        gameSteps.push(j);
+                        break;
+                    } else {
+                        cellNext.isCovered = true;
+                    }
+                }
+
+            }
+
+            repaint();
+        }
+    }
+
+
+    //Saving game status
+    protected static void saveGameStatus2File() throws IOException {
+        String userName = "";
+        //lets user know that
+        if ("".equals(textArea.getText()) || textArea.getText().equals("Input your name here...")) {
+            JOptionPane.showMessageDialog(null, "We gave you a default user name, you may input your name next time.");
+            userName = "Default user";
+        } else {
+            userName = textArea.getText();
+        }
+
+
+        if (gameBoard.length == 0) {
+            System.exit(0);
+        }
