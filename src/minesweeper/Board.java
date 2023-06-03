@@ -423,3 +423,149 @@ public class Board extends JPanel implements ActionListener {
                 if (inGame && cell.getCellType() == CellType.Bomb && !cell.isCoveredCell()) {
                     inGame = false;
                 }
+                if (!inGame) {//when game is over
+                    if (cell.getCellType() == CellType.Bomb && !cell.isMarkedCell()) {
+                        cell.flipUp();
+                        imageName = ImageName.Bomb.toString(); // draw mine
+                    } else if (cell.isCoveredCell() && cell.getCellType() == CellType.Bomb && cell.isMarkedCell()) {
+                        imageName = ImageName.Marked.toString(); //draw mark
+                    } else if (cell.isCoveredCell() && cell.getCellType() != CellType.Bomb && cell.isMarkedCell()) {//wrongly marked cells
+                        imageName = ImageName.Wrongmarked.toString(); //draw wrong mark
+                    } else if (cell.isCoveredCell()) {//board cells that are still covered remain covered
+                        imageName = ImageName.Covered.toString(); //draw cover
+                    }
+
+                } else {//when game is still going
+                    if (cell.isMarkedCell()) {//draw a mark if user clicks on covered cell
+                        imageName = ImageName.Marked.toString();
+                    } else if (cell.isCoveredCell()) {//draw cover when user clicks on a flagged/marked cell, cover is revealed reducing cell value
+                        imageName = ImageName.Covered.toString();
+                        uncover++;
+                    }
+                }
+
+                g.drawImage(images.get(imageName), (j * CELL_SIZE),
+                        (i * CELL_SIZE), this);
+            }
+        }
+
+        if (uncover == 0 && inGame) {//when there's nothing left to uncover
+            inGame = false;
+            statusbar.setText("Game won");
+        } else if (!inGame) {
+            //Clear all user steps stored in gameSteps so user cannot "undo" moves when
+            //bomb is clicked on
+            gameSteps.clear();
+            statusbar.setText("Game lost");
+        }
+
+        //no more "Undo" option once user undoes all the steps
+        if (gameSteps.empty()) {
+            this.bUndo.setEnabled(false);
+        } else {
+            this.bUndo.setEnabled(true);
+        }
+    }
+
+
+    //Makes changes based on user action
+    private class MinesAdapter extends MouseAdapter {
+
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+
+            //x and y coordinates
+            int x = e.getX();
+            int y = e.getY();
+
+            //corresponding column and row in board
+            int cCol = x / CELL_SIZE;
+            int cRow = y / CELL_SIZE;
+
+            boolean doRepaint = false;
+
+            if (!inGame) {
+
+                newGame();
+                repaint();
+                gameSteps.clear();
+            }
+
+            //check if we are located in mine field area
+            if ((x < N_COLS * CELL_SIZE) && (y < N_ROWS * CELL_SIZE)) {
+
+                //RIGHT MOUSE CLICK
+                if (e.getButton() == MouseEvent.BUTTON3) {
+
+                    if (gameBoard[cRow][cCol].isCoveredCell()) {
+                        doRepaint = true;//implies that we do nothing if user right clicks on a number cell
+
+                        //right click on an unmarked cell
+
+                        if (!gameBoard[cRow][cCol].isMarkedCell() && minesLeft > 0) {
+                            Cell cell = gameBoard[cRow][cCol];
+                            cell.changeWhetherMarked();//changed to marked cell
+                            minesLeft--;
+                            if (minesLeft > 0) {
+                                String msg = Integer.toString(minesLeft);
+                                statusbar.setText("Flags Left: " + msg);
+                            }  else {
+                                statusbar.setText("No marks left");
+                            }
+                            //add steps to gameSteps stack
+                            gameSteps.push(cRow * N_COLS + cCol);
+                        }
+                        else if (gameBoard[cRow][cCol].isMarkedCell()) {//right click on already marked cell, removes marks and increase number of cells to be marked
+                            gameBoard[cRow][cCol].changeWhetherMarked();//changes it to not marked
+                            minesLeft++;
+                            String msg = Integer.toString(minesLeft);
+                            statusbar.setText("Flags Left: " + msg);
+                        }
+
+
+                    }
+
+
+                    //LEFT MOUSE CLICK
+                } else {
+
+                    //nothing happens if user left clicks on covered and marked cell
+                    if (gameBoard[cRow][cCol].isMarkedCell()) {
+                        return;
+                    }
+
+                    //user left clicks to remove a cover from cell
+                    if (gameBoard[cRow][cCol].isCoveredCell()
+                        //&& (gameBoard[cRow][cCol].getCellType() == CellType.Bomb )
+                    ) {
+
+                        gameBoard[cRow][cCol].flipUp();
+                        doRepaint = true;
+                        gameSteps.push(cRow * N_COLS + cCol);
+
+                        //if user clicks on mine, game is over
+                        if (gameBoard[cRow][cCol].getCellType() == CellType.Bomb
+                                && !gameBoard[cRow][cCol].isCoveredCell()) {
+                            inGame = false;
+                        }
+
+                        //if user clicks on empty cell, call empty cell function which will handle the situation
+                        if (gameBoard[cRow][cCol].getCellType() == CellType.Empty) {
+                            find_empty_cells(cRow, cCol);
+                        }
+                    }
+                }
+
+                if (doRepaint) {
+                    repaint();
+                }
+
+
+
+
+            }
+        }
+    }
+}
+
