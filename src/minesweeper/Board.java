@@ -199,16 +199,21 @@ public class Board extends JPanel implements ActionListener {
 
     private void showRules() {
         JOptionPane.showMessageDialog(null, "GAME RULES: \n" + "\n"
-                + "Goal: sweep all bombs from a 16x16 mine field." + "\n"
+                + "Goal: sweep all bombs from a 16x16 mine field" + "\n"
                 + "Left click to uncover the cells, a cell with a number reveals the number of neighboring cells that contain bombs" +"\n"
-                + "If a empty cell and its neighbors are also empty they both will be revealed (the entire region of all empty cells) until a cell with a number appears. Use this information plus guess work to avoid the bombs. "+"\n"
-                + "To mark a cell you think is a bomb, right-click on the cell and a flag will appear. You have 40 flags in total, one for each bomb. The user can “unflag” a cell by right clicking the cell again."+"\n"
-                + "You will be notified when you have used up all your 40. lags with a count of how many flags you have left in the lower left corner" +"\n"
+                + "If a empty cell and its neighbors are also empty they both will be revealed " + "\n"
+                +"(the entire region of all empty cells) until a cell with a number appears"+"\n"
+                + "To mark a cell you think is a bomb, right-click on the cell and a flag will appear" +"\n"
+                +" You have 40 flags in total, one for each bomb. The user can “unflag” a cell by right clicking the cell again."+"\n"
+                + "You will be notified when you have used up all your 40 flags with a count in the lower left corner" +"\n"
                 + "The user can “unflag” a cell by right clicking the cell again."+"\n"
-                + "The game is won when the user has successfully identified all the cells that contain bombs and the game is lost when the player clicks on a cell which contains a bomb. \n" +
-                "The user can undo any number of moves for any type of move, which includes clicking on flagged cells, empty cells, and neighbor cells."+"\n"
-                + "To start a new game, just clicks anywhere on the board. You can stop the game at any point by exiting the game. The game will automatically be saved." +
-                " When re-loaded, the user will have the option of starting a new game or starting from the most recent version of the game when exited.. "+"\n");
+                + "The game is won when the user has successfully identified all the cells that contain bombs" +"\n"
+                +" and the game is lost when the player clicks on a cell which contains a bomb" + "\n" +
+                "The user can undo any number of moves for any type of move" +"\n" +
+                " which includes clicking on flagged cells, empty cells, and neighbor cells." +"\n"
+                + "To start a new game, just clicks anywhere on the board. " +"\n"+
+                "You can stop the game at any point by exiting the game. The game will automatically be saved." +
+                " When re-loaded, the user will have the option of starting a new game or continue last game.. "+"\n");
     }
 
     //Initializes the game board
